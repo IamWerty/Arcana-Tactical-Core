@@ -400,7 +400,7 @@ class ArcanaTacticalCore(ctk.CTk):
                 flat_damage_bonus = min(dynamic_flat_limit, math.floor(V))
                 modifier_name = f"Модифікатор швидкості : +{flat_damage_bonus} (Макс для пулу: +{dynamic_flat_limit})"
             else:
-                flat_damage_bonus = math.floor(V)
+                flat_damage_bonus = math.floor(V/1.5)
                 modifier_name = f"Модифікатор швидкості : +{flat_damage_bonus}"
 
             # 3. Ефект Важкості (Бонус до Класу Обладунку КБ)
