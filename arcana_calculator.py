@@ -13,7 +13,7 @@ class ArcanaTacticalCore(ctk.CTk):
     def __init__(self):
         super().__init__()
 
-        self.title("ARCANE TACTICAL CORE v2.3.0")
+        self.title("ARCANE TACTICAL CORE v1.1.2")
         self.geometry("1300x850")
         self.minsize(1150, 750) 
         self.configure(fg_color="#0d0e15")
