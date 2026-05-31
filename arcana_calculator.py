@@ -545,7 +545,7 @@ class ArcanaTacticalCore(ctk.CTk):
             N_dice = int(self.ent_ndice.get())
             dK = self.cb_dk.get()
             n_arcs = int(self.ent_arcs.get())
-            is_far = self.cb_dist.get() != "В пределах эфф. дальности"
+            is_far = self.cb_dist.get() != "В радіусі ефективної дальности"
 
             dk_mass_map = {"d4": 3, "d6": 4, "d8": 5, "d10": 6, "d12": 7}
             m = N_dice * dk_mass_map[dK]
