@@ -387,7 +387,6 @@ class ArcanaTacticalCore(ctk.CTk):
                 extra_cubes = math.floor(A / 5.0)
                 max_possible_cubes = "3dK"
             else:
-                # Дробяща зброя: якщо А >= 5.0, додається строго 1 додатковий кубик (разом максимум 2dK)
                 extra_cubes = math.floor(A / 8.0)
                 max_possible_cubes = "3dK"
             total_cubes = base_cubes + extra_cubes
@@ -404,7 +403,10 @@ class ArcanaTacticalCore(ctk.CTk):
                 modifier_name = f"Модифікатор швидкості : +{flat_damage_bonus}"
 
             # 3. Ефект Важкості (Бонус до Класу Обладунку КБ)
-            ac_bonus = math.floor(W / 2)
+            if "Дробяща" in weapon_type:
+                ac_bonus = math.floor(W / 2)
+            else:
+                ac_bonus = math.floor(W / 5)
 
             # Розрахунок середнього математичного урону
             avg_single_cube = (1 + dk_sides) / 2
