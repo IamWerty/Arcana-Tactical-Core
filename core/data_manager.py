@@ -1,28 +1,36 @@
 """
 core/data_manager.py
 ====================
-Централізована система зберігання стану сесії та JSON save/load.
-Всі модулі звертаються до цього об'єкту за даними.
+Централізована система зберігання БОЙОВОГО стану сесії.
+Файли зберігаються у ./data/ поруч із точкою входу (main.py).
+
+saved_spells більше НЕ зберігається тут — єдине джерело заклинань
+тепер data/spellbook.json, яким керує CharacterManager.
+DataManager зберігає лише:
+  - batteries        (legacy-батарейки без персонажа)
+  - active_spells    (активні закли без персонажа)
+  - clash_state      (стан Clash, тільки в пам'яті)
 """
 import json
 import os
 
-SAVE_FILE = os.path.join(os.path.expanduser("~"), ".arcana_battle_save.json")
+# data/ лежить поруч із main.py (на один рівень вище core/)
+_HERE = os.path.dirname(os.path.abspath(__file__))
+DATA_DIR = os.path.normpath(os.path.join(_HERE, "..", "data"))
+SAVE_FILE = os.path.join(DATA_DIR, "battle_save.json")
 
 
 class DataManager:
     def __init__(self):
-        self.batteries: dict = {
-            "Мала сура (Альфа)": {"max": 250, "current": 250},
-            "Сувій Ліори (Резерв)": {"max": 1000, "current": 1000}
-        }
-        self.saved_spells: dict = {}
+        os.makedirs(DATA_DIR, exist_ok=True)
+
+        self.batteries: dict = {}
         self.active_spells: list = []
 
-        # Стан Clash-системи (не зберігається між сесіями, тільки на час бою)
+        # Стан Clash (не зберігається між сесіями)
         self.clash_state: dict = {
             "active": False,
-            "scale": 0,           # від -3 до +3
+            "scale": 0,
             "player_mod": 0,
             "enemy_mod": 0,
             "log": []
@@ -36,7 +44,6 @@ class DataManager:
     def save_to_json(self):
         data_to_save = {
             "batteries": self.batteries,
-            "saved_spells": self.saved_spells,
             "active_spells": self.active_spells
         }
         try:
@@ -53,7 +60,6 @@ class DataManager:
                 with open(SAVE_FILE, "r", encoding="utf-8") as f:
                     loaded = json.load(f)
                     self.batteries = loaded.get("batteries", self.batteries)
-                    self.saved_spells = loaded.get("saved_spells", self.saved_spells)
                     self.active_spells = loaded.get("active_spells", self.active_spells)
             except Exception as e:
                 print(f"[DataManager] Помилка завантаження: {e}")

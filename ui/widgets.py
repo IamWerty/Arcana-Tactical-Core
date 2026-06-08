@@ -54,6 +54,33 @@ def make_input(container, label_text: str, default_val: str, width: int = 210) -
     return ent
 
 
+def make_readonly_textbox(container, **kwargs) -> ctk.CTkTextbox:
+    """
+    CTkTextbox де можна виділяти і копіювати, але не редагувати.
+    """
+    txt = ctk.CTkTextbox(container, **kwargs)
+
+    def _setup(event=None):
+        inner = txt._textbox
+        # Блокуємо всі дії що змінюють текст
+        for seq in ("<<Paste>>", "<<Cut>>", "<<Clear>>",
+                    "<BackSpace>", "<Delete>",
+                    "<Return>", "<Tab>"):
+            inner.bind(seq, lambda e: "break")
+        # Блокуємо друк символів, але дозволяємо Ctrl+C / Ctrl+A
+        def _key(e):
+            if e.state & 0x4 and e.keysym.lower() in ("c", "a"):
+                return
+            if e.keysym in ("Left","Right","Up","Down","Home","End","Prior","Next"):
+                return
+            if len(e.char) > 0:
+                return "break"
+        inner.bind("<Key>", _key)
+
+    txt.bind("<Map>", _setup)
+    return txt
+
+
 def make_section_title(container, text: str, color: str = "#00f0ff", size: int = 14):
     lbl = ctk.CTkLabel(
         container, text=text,

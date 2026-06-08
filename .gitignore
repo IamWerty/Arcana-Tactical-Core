@@ -1,3 +1,5 @@
 dist/
 build/
 arcana_calculator.spec
+__pycache__
+__init__.py

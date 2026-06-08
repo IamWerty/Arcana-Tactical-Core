@@ -25,6 +25,19 @@ def _get_mass_d6(n: int) -> float:
         return 40.0 + 98.13 * math.log2((n - 4) * 0.0329 + 1)
 
 
+def _parse_or_map(value: str, mapping: dict, default):
+    """
+    Якщо value є числом — повертає float(value).
+    Інакше шукає по ключу у mapping (по префіксу до ' (').
+    """
+    v = value.strip()
+    try:
+        return float(v)
+    except ValueError:
+        key = v.split(" (")[0].split(" = ")[0]
+        return mapping.get(key, default)
+
+
 def calculate(params: dict) -> dict:
     """
     params: {
@@ -33,10 +46,10 @@ def calculate(params: dict) -> dict:
     Повертає dict з ключами success, і або результати, або error.
     """
     try:
-        K_l = SIZE_MAP[params["size"].split(" (")[0]]
-        A_shape = SHAPE_MAP[params["shape"].split(" = ")[0]]
-        K_vector = 1.0 + VECTOR_MAP[params["vector"].split(" = ")[0]]
-        S_m = SM_MAP[params["sm"].split(" (")[0]]
+        K_l      = _parse_or_map(params["size"],   SIZE_MAP,   1.0)
+        A_shape  = _parse_or_map(params["shape"],  SHAPE_MAP,  5)
+        K_vector = 1.0 + _parse_or_map(params["vector"], VECTOR_MAP, 0.0)
+        S_m      = _parse_or_map(params["sm"],     SM_MAP,     1.0)
         K_m = float(params["km"])
         K_q = float(params["kq"])
         N_dice = int(params["ndice"])
@@ -44,13 +57,16 @@ def calculate(params: dict) -> dict:
         n_arcs = int(params["arcs"])
         is_far = params["is_far"]
 
+        is_moving = params.get("is_moving", True)
+
         m = round(_get_mass_d6(N_dice) * DK_PRICE_MULTIPLIER[dK], 2)
 
         v0 = 10
         harmonic_sum = sum(v0 / i for i in range(1, n_arcs + 1)) if n_arcs > 0 else 0
         v = v0 + harmonic_sum
 
-        A_total = math.ceil(K_l * (((m * K_m * K_q) + A_shape) + (m * K_vector * v)))
+        kinetic = m * K_vector * v if is_moving else 0.0
+        A_total = math.ceil(K_l * (m * K_m * K_q + A_shape + kinetic))
         speed_mod = n_arcs * 2
 
         dk_sides = int(dK[1:])
@@ -58,15 +74,21 @@ def calculate(params: dict) -> dict:
         game_formula = f"({N_dice}{dK}{f' * {S_m}' if S_m != 1.0 else ''}) + {speed_mod}{' / 2' if is_far else ''}"
 
         return {
-            "success": True,
-            "A_total": A_total,
-            "m": m,
-            "v": v,
-            "S_m": S_m,
-            "speed_mod": speed_mod,
-            "avg_damage": avg_damage,
+            "success":      True,
+            "A_total":      A_total,
+            "m":            m,
+            "v":            v,
+            "S_m":          S_m,
+            "speed_mod":    speed_mod,
+            "avg_damage":   avg_damage,
             "game_formula": game_formula,
-            "raw_params": dict(params)
+            "raw_params":   dict(params),            # Проміжні значення для логу
+            "K_l":          K_l,
+            "A_shape":      A_shape,
+            "K_vector":     K_vector,
+            "K_m":          K_m,
+            "K_q":          K_q,
+            "n_arcs":       n_arcs,
         }
     except Exception as e:
         return {"success": False, "error": str(e)}
